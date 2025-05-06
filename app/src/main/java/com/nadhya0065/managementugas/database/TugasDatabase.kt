@@ -8,19 +8,27 @@ import com.nadhya0065.managementugas.model.Tugas
 
 @Database(entities = [Tugas::class], version = 1, exportSchema = false)
 abstract class TugasDatabase : RoomDatabase() {
-    abstract fun tugasDao(): TugasDao
+
+    abstract val dao : TugasDao
 
     companion object {
+
         @Volatile
         private var INSTANCE: TugasDatabase? = null
 
-        fun getDatabase(context: Context): TugasDatabase {
-            return INSTANCE ?: synchronized(this) {
-                Room.databaseBuilder(
-                    context.applicationContext,
-                    TugasDatabase::class.java,
-                    "tugas_db"
-                ).build().also { INSTANCE = it }
+        fun getInstance(context: Context): TugasDatabase {
+            synchronized(this) {
+                var instance = INSTANCE
+
+                if (instance == null) {
+                    instance = Room.databaseBuilder(
+                        context.applicationContext,
+                        TugasDatabase::class.java,
+                        "mahasiswa.db"
+                    ).build()
+                    INSTANCE = instance
+                }
+                return instance
             }
         }
     }
