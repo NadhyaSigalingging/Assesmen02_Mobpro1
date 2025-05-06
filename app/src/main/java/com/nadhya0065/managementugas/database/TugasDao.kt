@@ -18,7 +18,7 @@ interface TugasDao {
     suspend fun update(tugas: Tugas)
 
     @Query("SELECT * FROM tugas ORDER BY prioritas ASC")
-    fun getMahasiswa(): Flow<List<Tugas>>
+    fun getTugas(): Flow<List<Tugas>>
 
     @Query("SELECT * FROM tugas WHERE id = :id")
     suspend fun getTugasById(id: Long): Tugas?

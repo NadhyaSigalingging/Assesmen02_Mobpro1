@@ -3,12 +3,7 @@ package com.nadhya0065.managementugas.ui.screen
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -16,25 +11,12 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,14 +31,16 @@ import com.nadhya0065.managementugas.navigation.Screen
 import com.nadhya0065.managementugas.ui.theme.ManagemenTugasTheme
 import com.nadhya0065.managementugas.util.SettingsDataStore
 import com.nadhya0065.managementugas.util.ViewModelFactory
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavController) {
-    val dataStore = SettingsDataStore(LocalContext.current)
-    val showList by dataStore.layoutFlow.collectAsState(true)
+    val context = LocalContext.current
+    val dataStore = remember { SettingsDataStore(context) }
+    val layoutFlow by dataStore.layoutFlow.collectAsState(initial = true)
+    val scope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,42 +52,39 @@ fun MainScreen(navController: NavController) {
                     titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 actions = {
-                    androidx.compose.material3.IconButton(onClick = {
-                        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
-                            dataStore.saveLayout(!showList)
+                    IconButton(onClick = {
+                        scope.launch {
+                            dataStore.saveLayout(!layoutFlow)
                         }
                     }) {
                         Icon(
-                            painter = androidx.compose.ui.res.painterResource(
-                                if (showList) R.drawable.baseline_grid_view_24
+                            painter = painterResource(
+                                id = if (layoutFlow) R.drawable.baseline_grid_view_24
                                 else R.drawable.baseline_view_list_24
                             ),
                             contentDescription = stringResource(
-                                if (showList) R.string.grid
-                                else R.string.list
+                                if (layoutFlow) R.string.grid else R.string.list
                             ),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
+
                     IconButton(onClick = {
                         navController.navigate(Screen.About.route)
                     }) {
                         Icon(
-                            painter = androidx.compose.ui.res.painterResource(R.drawable.baseline_info_24),
+                            painter = painterResource(R.drawable.baseline_info_24),
                             contentDescription = stringResource(R.string.tentang_aplikasi),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
-
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate(Screen.FormBaru.route)
-                }
-            ) {
+            FloatingActionButton(onClick = {
+                navController.navigate(Screen.FormBaru.route)
+            }) {
                 Icon(
                     imageVector = Icons.Filled.Add,
                     contentDescription = stringResource(R.string.tambah_tugas),
@@ -112,21 +93,25 @@ fun MainScreen(navController: NavController) {
             }
         }
     ) { innerPadding ->
-        ScreenContent(showList,Modifier.padding(innerPadding), navController)
+        ScreenContent(
+            showList = layoutFlow,
+            modifier = Modifier.padding(innerPadding),
+            navController = navController
+        )
     }
 }
 
-
 @Composable
-fun ScreenContent(showList: Boolean,modifier: Modifier = Modifier, navController: NavController) {
+fun ScreenContent(showList: Boolean, modifier: Modifier = Modifier, navController: NavController) {
     val context = LocalContext.current
-    val factory = ViewModelFactory(context)
-    val viewModel: MainViewModel = viewModel(factory = factory)
+    val viewModel: MainViewModel = viewModel(factory = ViewModelFactory(context))
     val data by viewModel.data.collectAsState()
 
     if (data.isEmpty()) {
         Column(
-            modifier = modifier.fillMaxSize().padding(16.dp),
+            modifier = modifier
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -138,25 +123,24 @@ fun ScreenContent(showList: Boolean,modifier: Modifier = Modifier, navController
                 modifier = modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 84.dp)
             ) {
-                items(data) {
-                    ListItem(tugas = it) {
-                        navController.navigate(Screen.FormUbah.withId(it.id))
+                items(data) { tugas ->
+                    ListItem(tugas = tugas) {
+                        navController.navigate(Screen.FormUbah.withId(tugas.id))
                     }
                     HorizontalDivider()
                 }
             }
-        }
-        else {
+        } else {
             LazyVerticalStaggeredGrid(
-                modifier = modifier.fillMaxSize(),
                 columns = StaggeredGridCells.Fixed(2),
+                modifier = modifier.fillMaxSize(),
                 verticalItemSpacing = 8.dp,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(8.dp, 8.dp, 8.dp, 84.dp)
             ) {
-                items(data) {
-                    GridItem(tugas = it) {
-                        navController.navigate(Screen.FormUbah.withId(it.id))
+                items(data) { tugas ->
+                    GridItem(tugas = tugas) {
+                        navController.navigate(Screen.FormUbah.withId(tugas.id))
                     }
                 }
             }
@@ -180,17 +164,20 @@ fun ListItem(tugas: Tugas, onClick: () -> Unit) {
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = tugas.dekripsi,
+            text = tugas.dekripsi, // FIX typo
             maxLines = 4,
             overflow = TextOverflow.Ellipsis
         )
         Text(text = tugas.prioritas)
     }
 }
+
 @Composable
 fun GridItem(tugas: Tugas, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
@@ -207,7 +194,7 @@ fun GridItem(tugas: Tugas, onClick: () -> Unit) {
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = tugas.dekripsi,
+                text = tugas.dekripsi, // FIX typo
                 maxLines = 8,
                 overflow = TextOverflow.Ellipsis
             )

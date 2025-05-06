@@ -1,21 +1,27 @@
 <resources>
-    <string name="app_name">ManagemenTugas</string>
-    <string name="grid">Grid View</string>
-    <string name="list">List View</string>
-    <string name="about">About</string>
-    <string name="tambah_tugas">Add Task</string>
-    <string name="tugas_kosong">Tidak ada tugas</string>
-    <string name="hapus">Tugas dihapus</string>
-    <string name="judul">judul</string>
+    <string name="app_name">Managemen Tugas</string>
+    <string name="list_kosong">Belum ada data</string>
+    <string name="x_diklik">%1$s diklik!</string>
+    <string name="tambah_tugas">Tambah Tugas</string>
+    <string name="tugas">Tugas</string>
     <string name="deskripsi">Deskripsi</string>
-    <string name="deadline">Deadline</string>
-    <string name="prioritas">Prioritas</string>
-    <string name="deadline_sudahdekat">Sudah Mendekati Deadline</string>
-    <string name="deadline_masihlama">Masih Lama Deadline</string>
-    <string name="input_warning">Please fill all fields!</string>
-    <string name="simpan"> Tugas Disimpan</string>
-    <string name="edit">Edit</string>
-    <string name="delete">Hapus</string>
-    <string name="tutup">Tutup</string>
+    <string name="kembali">Kembali</string>
+    <string name="simpan">Simpan</string>
+    <string name="edit_tugas">Ubah Tugas</string>
+    <string name="sudahdekat_deadline">MENDEKATI DEADLINE</string>
+    <string name="deadline_masihlama">MASIH LAMA DEADLINENYA</string>
+    <string name="invalid">Tugas,deskripsi dan prioritas tidak bisa kosong!!</string>
+    <string name="lainnya">Opsi lainnya</string>
+    <string name="hapus">Hapus Tugas</string>
+    <string name="tugas_kosong">Tugas Kosong</string>
+    <string name="pesan_hapus">Hapus Data Tugas ini?</string>
+    <string name="tombol_hapus">Hapus</string>
+    <string name="tombol_batal">Batal</string>
+    <string name="list">Tampilan List</string>
+    <string name="grid">Tampilan Grid</string>
+    <string name="tentang_aplikasi">Tentang Aplikasi</string>
+    <string name="copyright">Aplikasi ini adalah aplikasi managemen Tugas membantu dalam memenejemen pengerjaan tugas. \n\nCopyright © 2024–2025 Nadhya Sigalingging.\nAll rights reserved</string>
+    <string name="tugas_dihapus">Tugas dihapus</string>
+    <string name="batal">Batal</string>
 
 </resources>

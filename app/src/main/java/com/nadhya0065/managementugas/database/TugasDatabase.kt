@@ -24,7 +24,7 @@ abstract class TugasDatabase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         TugasDatabase::class.java,
-                        "mahasiswa.db"
+                        "tugas.db"
                     ).build()
                     INSTANCE = instance
                 }
