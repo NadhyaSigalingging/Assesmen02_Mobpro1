@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">ManagemenTugas</string>
+    <string name="grid">Grid View</string>
+    <string name="list">List View</string>
+    <string name="about">About</string>
+    <string name="tambah_tugas">Add Task</string>
+    <string name="tugas_kosong">Tidak ada tugas</string>
+    <string name="hapus">Tugas dihapus</string>
+    <string name="judul">judul</string>
+    <string name="deskripsi">Deskripsi</string>
+    <string name="deadline">Deadline</string>
+    <string name="prioritas">Prioritas</string>
+    <string name="deadline_sudahdekat">Sudah Mendekati Deadline</string>
+    <string name="deadline_masihlama">Masih Lama Deadline</string>
+    <string name="input_warning">Please fill all fields!</string>
+    <string name="simpan"> Tugas Disimpan</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Hapus</string>
+    <string name="tutup">Tutup</string>
+
 </resources>
