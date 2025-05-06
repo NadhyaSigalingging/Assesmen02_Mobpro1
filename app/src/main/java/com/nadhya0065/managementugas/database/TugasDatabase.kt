@@ -1,30 +1,10 @@
-package com.nadhya0065.managemenTugas.database
+package com.nadhya0065.managementugas.database
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.nadhya0065.managementugas.database.TugasDao
 import com.nadhya0065.managementugas.model.Tugas
 
-@Database(entities = [Tugas::class], version = 1, exportSchema = false)
+@Database(entities = [Tugas::class], version = 1)
 abstract class TugasDatabase : RoomDatabase() {
     abstract fun tugasDao(): TugasDao
-
-    companion object {
-        @Volatile
-        private var INSTANCE: TugasDatabase? = null
-
-        fun getDatabase(context: Context): TugasDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    TugasDatabase::class.java,
-                    "tugas_database"
-                ).build()
-                INSTANCE = instance
-                instance
-            }
-        }
-    }
 }
