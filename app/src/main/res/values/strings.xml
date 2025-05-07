@@ -25,4 +25,7 @@
     <string name="batal">Batal</string>
     <string name="data_dihapus">Data Dihapus</string>
     <string name="undo">Undo</string>
+    <string name="konfirmasi_hapus">Konfirmasi Hapus</string>
+    <string name="yakin_hapus">Yakin Hapus</string>
+    <string name="prioritas">prioritas</string>
 </resources>

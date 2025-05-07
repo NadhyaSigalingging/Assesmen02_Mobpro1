@@ -45,22 +45,18 @@ fun MainScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(text = stringResource(R.string.app_name))
-                },
+                title = { Text(text = stringResource(R.string.app_name)) },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 actions = {
                     IconButton(onClick = {
-                        scope.launch {
-                            dataStore.saveLayout(!layoutFlow)
-                        }
+                        scope.launch { dataStore.saveLayout(!layoutFlow) }
                     }) {
                         Icon(
                             painter = painterResource(
-                                id = if (layoutFlow) R.drawable.baseline_grid_view_24
+                                if (layoutFlow) R.drawable.baseline_grid_view_24
                                 else R.drawable.baseline_view_list_24
                             ),
                             contentDescription = stringResource(
@@ -93,13 +89,13 @@ fun MainScreen(navController: NavController) {
                 )
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) } // Tambahkan ini
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         ScreenContent(
             showList = layoutFlow,
             modifier = Modifier.padding(innerPadding),
             navController = navController,
-            snackbarHostState = snackbarHostState // Pass ke bawah
+            snackbarHostState = snackbarHostState
         )
     }
 }
@@ -116,6 +112,42 @@ fun ScreenContent(
     val detailViewModel: DetailViewModel = viewModel(factory = ViewModelFactory(context))
     val data by viewModel.data.collectAsState()
     val scope = rememberCoroutineScope()
+    val openDialog = remember { mutableStateOf(false) }
+    val selectedTugas = remember { mutableStateOf<Tugas?>(null) }
+
+    if (openDialog.value) {
+        AlertDialog(
+            onDismissRequest = { openDialog.value = false },
+            title = { Text(stringResource(R.string.konfirmasi_hapus)) },
+            text = { Text(stringResource(R.string.yakin_hapus)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedTugas.value?.let {
+                        detailViewModel.delete(it)
+                        scope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = context.getString(R.string.data_dihapus),
+                                actionLabel = context.getString(R.string.undo)
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                detailViewModel.restoreDeletedTugas()
+                            }
+                        }
+                    }
+                    openDialog.value = false
+                }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    openDialog.value = false
+                }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
+    }
 
     if (data.isEmpty()) {
         Column(
@@ -136,20 +168,10 @@ fun ScreenContent(
                 items(data) { tugas ->
                     ListItem(
                         tugas = tugas,
-                        onClick = {
-                            navController.navigate(Screen.FormUbah.withId(tugas.id))
-                        },
-                        onDelete = { deletedTugas ->
-                            detailViewModel.delete(deletedTugas)
-                            scope.launch {
-                                val result = snackbarHostState.showSnackbar(
-                                    message = context.getString(R.string.data_dihapus),
-                                    actionLabel = context.getString(R.string.undo)
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    detailViewModel.restoreDeletedTugas()
-                                }
-                            }
+                        onClick = { navController.navigate(Screen.FormUbah.withId(tugas.id)) },
+                        onDelete = {
+                            selectedTugas.value = it
+                            openDialog.value = true
                         }
                     )
                     HorizontalDivider()
@@ -166,20 +188,10 @@ fun ScreenContent(
                 items(data) { tugas ->
                     GridItem(
                         tugas = tugas,
-                        onClick = {
-                            navController.navigate(Screen.FormUbah.withId(tugas.id))
-                        },
-                        onDelete = { deletedTugas ->
-                            detailViewModel.delete(deletedTugas)
-                            scope.launch {
-                                val result = snackbarHostState.showSnackbar(
-                                    message = context.getString(R.string.data_dihapus),
-                                    actionLabel = context.getString(R.string.undo)
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    detailViewModel.restoreDeletedTugas()
-                                }
-                            }
+                        onClick = { navController.navigate(Screen.FormUbah.withId(tugas.id)) },
+                        onDelete = {
+                            selectedTugas.value = it
+                            openDialog.value = true
                         }
                     )
                 }

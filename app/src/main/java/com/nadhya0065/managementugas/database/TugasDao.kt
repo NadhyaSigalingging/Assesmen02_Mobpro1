@@ -21,7 +21,7 @@ interface TugasDao {
     @Delete
     suspend fun delete(tugas: Tugas)
 
-    @Query("SELECT * FROM tugas ORDER BY prioritas ASC")
+    @Query("SELECT * FROM tugas ORDER BY prioritas DESC")
     fun getTugas(): Flow<List<Tugas>>
 
     @Query("SELECT * FROM tugas WHERE id = :id")
