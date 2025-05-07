@@ -13,7 +13,7 @@ import com.nadhya0065.managementugas.ui.theme.ManagemenTugasTheme
 @Composable
 fun DisplayAlertDialog(
     onDismissRequest: () -> Unit,
-    onConfirmation: () -> Unit
+    onConfirmation:  () -> Unit
 ) {
     AlertDialog(
         text = {

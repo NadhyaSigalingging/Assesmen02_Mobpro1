@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nadhya0065.managementugas.R
 import com.nadhya0065.managementugas.ui.theme.ManagemenTugasTheme
 import com.nadhya0065.managementugas.util.ViewModelFactory
+import kotlinx.coroutines.launch
 
 const val KEY_VAL_TUGAS = "idTugas"
 
@@ -76,11 +78,13 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
         prioritas = data.prioritas
     }
 
-    Scaffold (
+    val coroutineScope = rememberCoroutineScope()
+
+    Scaffold(
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    IconButton(onClick = {navController.popBackStack()}) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.kembali),
@@ -109,7 +113,8 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
                         } else {
                             viewModel.update(id, nama_tugas, deskripsi, prioritas)
                         }
-                        navController.popBackStack()}) {
+                        navController.popBackStack()
+                    }) {
                         Icon(
                             imageVector = Icons.Outlined.Check,
                             contentDescription = stringResource(R.string.simpan),
@@ -124,27 +129,36 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
                 }
             )
         }
-    ){ padding ->
+    ) { padding ->
         FormMahasiswa(
             tugas = nama_tugas,
             onTugasChange = { nama_tugas = it },
             deskripsi = deskripsi,
-            onDeskripsiChange = {deskripsi = it},
+            onDeskripsiChange = { deskripsi = it },
             prioritas = prioritas,
-            onPrioritasChange = {prioritas = it},
+            onPrioritasChange = { prioritas = it },
             radioOptions = radioOptions,
             modifier = Modifier.padding(padding),
         )
-        if (id!= null && showDialog){
+        if (id != null && showDialog) {
             DisplayAlertDialog(
-                onDismissRequest = {showDialog = false}) {
-                showDialog = false
-                viewModel.delete(id)
-                navController.popBackStack()
-            }
+                onDismissRequest = { showDialog = false },
+                onConfirmation = {
+                    showDialog = false
+
+                    coroutineScope.launch {
+                        viewModel.getTugas(id)?.let {
+                            viewModel.delete(it)
+                            navController.popBackStack()
+                        }
+                    }
+                }
+            )
         }
+
     }
 }
+
 
 
 @Composable

@@ -1,6 +1,7 @@
 package com.nadhya0065.managementugas.database
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -16,6 +17,9 @@ interface TugasDao {
 
     @Update
     suspend fun update(tugas: Tugas)
+
+    @Delete
+    suspend fun delete(tugas: Tugas)
 
     @Query("SELECT * FROM tugas ORDER BY prioritas ASC")
     fun getTugas(): Flow<List<Tugas>>

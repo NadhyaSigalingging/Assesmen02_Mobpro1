@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,6 +40,7 @@ fun MainScreen(navController: NavController) {
     val dataStore = remember { SettingsDataStore(context) }
     val layoutFlow by dataStore.layoutFlow.collectAsState(initial = true)
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         topBar = {
@@ -91,21 +92,30 @@ fun MainScreen(navController: NavController) {
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) } // Tambahkan ini
     ) { innerPadding ->
         ScreenContent(
             showList = layoutFlow,
             modifier = Modifier.padding(innerPadding),
-            navController = navController
+            navController = navController,
+            snackbarHostState = snackbarHostState // Pass ke bawah
         )
     }
 }
 
 @Composable
-fun ScreenContent(showList: Boolean, modifier: Modifier = Modifier, navController: NavController) {
+fun ScreenContent(
+    showList: Boolean,
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    snackbarHostState: SnackbarHostState
+) {
     val context = LocalContext.current
     val viewModel: MainViewModel = viewModel(factory = ViewModelFactory(context))
+    val detailViewModel: DetailViewModel = viewModel(factory = ViewModelFactory(context))
     val data by viewModel.data.collectAsState()
+    val scope = rememberCoroutineScope()
 
     if (data.isEmpty()) {
         Column(
@@ -124,9 +134,24 @@ fun ScreenContent(showList: Boolean, modifier: Modifier = Modifier, navControlle
                 contentPadding = PaddingValues(bottom = 84.dp)
             ) {
                 items(data) { tugas ->
-                    ListItem(tugas = tugas) {
-                        navController.navigate(Screen.FormUbah.withId(tugas.id))
-                    }
+                    ListItem(
+                        tugas = tugas,
+                        onClick = {
+                            navController.navigate(Screen.FormUbah.withId(tugas.id))
+                        },
+                        onDelete = { deletedTugas ->
+                            detailViewModel.delete(deletedTugas)
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = context.getString(R.string.data_dihapus),
+                                    actionLabel = context.getString(R.string.undo)
+                                )
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    detailViewModel.restoreDeletedTugas()
+                                }
+                            }
+                        }
+                    )
                     HorizontalDivider()
                 }
             }
@@ -139,9 +164,24 @@ fun ScreenContent(showList: Boolean, modifier: Modifier = Modifier, navControlle
                 contentPadding = PaddingValues(8.dp, 8.dp, 8.dp, 84.dp)
             ) {
                 items(data) { tugas ->
-                    GridItem(tugas = tugas) {
-                        navController.navigate(Screen.FormUbah.withId(tugas.id))
-                    }
+                    GridItem(
+                        tugas = tugas,
+                        onClick = {
+                            navController.navigate(Screen.FormUbah.withId(tugas.id))
+                        },
+                        onDelete = { deletedTugas ->
+                            detailViewModel.delete(deletedTugas)
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = context.getString(R.string.data_dihapus),
+                                    actionLabel = context.getString(R.string.undo)
+                                )
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    detailViewModel.restoreDeletedTugas()
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -149,31 +189,27 @@ fun ScreenContent(showList: Boolean, modifier: Modifier = Modifier, navControlle
 }
 
 @Composable
-fun ListItem(tugas: Tugas, onClick: () -> Unit) {
-    Column(
+fun ListItem(tugas: Tugas, onClick: () -> Unit, onDelete: (Tugas) -> Unit) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = tugas.nama_tugas,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = tugas.dekripsi, // FIX typo
-            maxLines = 4,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(text = tugas.prioritas)
+        Column {
+            Text(text = tugas.nama_tugas, fontWeight = FontWeight.Bold)
+            Text(text = tugas.dekripsi)
+            Text(text = tugas.prioritas)
+        }
+        IconButton(onClick = { onDelete(tugas) }) {
+            Icon(Icons.Default.Delete, contentDescription = "Hapus")
+        }
     }
 }
 
 @Composable
-fun GridItem(tugas: Tugas, onClick: () -> Unit) {
+fun GridItem(tugas: Tugas, onClick: () -> Unit, onDelete: (Tugas) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -187,18 +223,18 @@ fun GridItem(tugas: Tugas, onClick: () -> Unit) {
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = tugas.nama_tugas,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = tugas.dekripsi, // FIX typo
-                maxLines = 8,
-                overflow = TextOverflow.Ellipsis
-            )
+            Text(text = tugas.nama_tugas, fontWeight = FontWeight.Bold)
+            Text(text = tugas.dekripsi)
             Text(text = tugas.prioritas)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = { onDelete(tugas) }) {
+                    Icon(Icons.Default.Delete, contentDescription = "Hapus")
+                }
+            }
         }
     }
 }

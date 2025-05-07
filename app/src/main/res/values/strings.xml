@@ -23,5 +23,6 @@
     <string name="copyright">Aplikasi ini adalah aplikasi managemen Tugas membantu dalam memenejemen pengerjaan tugas. \n\nCopyright © 2024–2025 Nadhya Sigalingging.\nAll rights reserved</string>
     <string name="tugas_dihapus">Tugas dihapus</string>
     <string name="batal">Batal</string>
-
+    <string name="data_dihapus">Data Dihapus</string>
+    <string name="undo">Undo</string>
 </resources>
