@@ -9,5 +9,6 @@ data class Tugas(
     val id: Long = 0L,
     val nama_tugas: String,
     val dekripsi: String,
+    val deadline: String,
     val prioritas: String
 )

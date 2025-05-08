@@ -1,5 +1,7 @@
 package com.nadhya0065.managementugas.ui.screen
 
+import android.annotation.SuppressLint
+import android.app.DatePickerDialog
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.border
@@ -8,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.*
@@ -28,6 +31,7 @@ import com.nadhya0065.managementugas.R
 import com.nadhya0065.managementugas.ui.theme.ManagemenTugasTheme
 import com.nadhya0065.managementugas.util.ViewModelFactory
 import kotlinx.coroutines.launch
+import java.util.*
 
 const val KEY_VAL_TUGAS = "idTugas"
 
@@ -40,6 +44,7 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
 
     var namaTugas by remember { mutableStateOf("") }
     var deskripsi by remember { mutableStateOf("") }
+    var deadline by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
 
     val radioOptions = listOf(
@@ -54,6 +59,7 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
             data?.let {
                 namaTugas = it.nama_tugas
                 deskripsi = it.dekripsi
+                deadline = it.deadline
                 prioritas = it.prioritas
             }
         }
@@ -86,14 +92,14 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
                 ),
                 actions = {
                     IconButton(onClick = {
-                        if (namaTugas.isEmpty() || deskripsi.isEmpty() || prioritas.isEmpty()) {
+                        if (namaTugas.isEmpty() || deskripsi.isEmpty() || deadline.isEmpty() || prioritas.isEmpty() ) {
                             Toast.makeText(context, R.string.invalid, Toast.LENGTH_LONG).show()
                             return@IconButton
                         }
                         if (id == null) {
-                            viewModel.insert(namaTugas, deskripsi, prioritas)
+                            viewModel.insert(namaTugas, deskripsi, deadline, prioritas)
                         } else {
-                            viewModel.update(id, namaTugas, deskripsi, prioritas)
+                            viewModel.update(id, namaTugas, deskripsi, deadline, prioritas)
                         }
                         navController.popBackStack()
                     }) {
@@ -116,6 +122,8 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
             onTugasChange = { namaTugas = it },
             deskripsi = deskripsi,
             onDeskripsiChange = { deskripsi = it },
+            deadline = deadline,
+            onDeadlineChange = { deadline = it },
             prioritas = prioritas,
             onPrioritasChange = { prioritas = it },
             radioOptions = radioOptions,
@@ -194,14 +202,17 @@ fun ClassOption(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun FormMahasiswa(
     tugas: String, onTugasChange: (String) -> Unit,
     deskripsi: String, onDeskripsiChange: (String) -> Unit,
+    deadline: String, onDeadlineChange: (String) -> Unit,
     prioritas: String, onPrioritasChange: (String) -> Unit,
     radioOptions: List<String>,
     modifier: Modifier
 ) {
+    val context = LocalContext.current
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -230,6 +241,36 @@ fun FormMahasiswa(
             ),
             modifier = Modifier.fillMaxWidth()
         )
+
+// Deadline sekarang pindah ke sini
+        val calendar = Calendar.getInstance()
+        val datePickerDialog = DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                val formattedDate = String.format("%02d-%02d-%d", dayOfMonth, month + 1, year)
+                onDeadlineChange(formattedDate)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+
+        OutlinedTextField(
+            value = deadline,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(text = stringResource(R.string.deadline)) },
+            trailingIcon = {
+                IconButton(onClick = { datePickerDialog.show() }) {
+                    Icon(
+                        imageVector = Icons.Filled.DateRange,
+                        contentDescription = "Pilih Tanggal"
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Text(
             text = stringResource(id = R.string.prioritas),
             style = MaterialTheme.typography.labelLarge
@@ -256,7 +297,7 @@ fun FormMahasiswa(
     }
 }
 
-@Preview(showBackground = true)
+        @Preview(showBackground = true)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
 fun DetailScreenPreview() {

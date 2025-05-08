@@ -210,8 +210,9 @@ fun ListItem(tugas: Tugas, onClick: () -> Unit, onDelete: (Tugas) -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
-            Text(text = tugas.nama_tugas, fontWeight = FontWeight.Bold)
+            Text(text = tugas.nama_tugas.uppercase(), fontWeight = FontWeight.Bold)
             Text(text = tugas.dekripsi)
+            Text(text = tugas.deadline, fontWeight =FontWeight.SemiBold)
             Text(text = tugas.prioritas)
         }
         IconButton(onClick = { onDelete(tugas) }) {
@@ -235,8 +236,9 @@ fun GridItem(tugas: Tugas, onClick: () -> Unit, onDelete: (Tugas) -> Unit) {
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(text = tugas.nama_tugas, fontWeight = FontWeight.Bold)
+            Text(text = tugas.nama_tugas.uppercase(), fontWeight = FontWeight.Bold)
             Text(text = tugas.dekripsi)
+            Text(text = tugas.deadline, fontWeight =FontWeight.SemiBold)
             Text(text = tugas.prioritas)
 
             Row(

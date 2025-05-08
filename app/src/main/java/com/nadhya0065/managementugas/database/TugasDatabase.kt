@@ -6,13 +6,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.nadhya0065.managementugas.model.Tugas
 
-@Database(entities = [Tugas::class], version = 1, exportSchema = false)
+@Database(entities = [Tugas::class], version = 2, exportSchema = false)
 abstract class TugasDatabase : RoomDatabase() {
 
-    abstract val dao : TugasDao
+    abstract val dao: TugasDao
 
     companion object {
-
         @Volatile
         private var INSTANCE: TugasDatabase? = null
 
@@ -25,7 +24,9 @@ abstract class TugasDatabase : RoomDatabase() {
                         context.applicationContext,
                         TugasDatabase::class.java,
                         "tugas.db"
-                    ).build()
+                    )
+                        .fallbackToDestructiveMigration()
+                        .build()
                     INSTANCE = instance
                 }
                 return instance

@@ -16,10 +16,11 @@ class DetailViewModel(private val dao: TugasDao) : ViewModel() {
         return dao.getTugasById(id)
     }
 
-    fun insert(nama_tugas: String, deskripsi: String, prioritas: String) {
+    fun insert(nama_tugas: String, deskripsi: String,deadline: String, prioritas: String) {
         val tugas = Tugas(
             nama_tugas = nama_tugas,
             dekripsi = deskripsi,
+            deadline = deadline,
             prioritas = prioritas
         )
 
@@ -28,11 +29,12 @@ class DetailViewModel(private val dao: TugasDao) : ViewModel() {
         }
     }
 
-    fun update(id: Long, nama_tugas: String, deskripsi: String, prioritas: String) {
+    fun update(id: Long, nama_tugas: String, deskripsi: String,deadline: String, prioritas: String) {
         val tugas = Tugas(
             id = id,
             nama_tugas = nama_tugas,
             dekripsi = deskripsi,
+            deadline = deadline,
             prioritas = prioritas
         )
 
