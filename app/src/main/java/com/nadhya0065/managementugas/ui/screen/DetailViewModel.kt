@@ -10,18 +10,18 @@ import kotlinx.coroutines.launch
 class DetailViewModel(private val dao: TugasDao) : ViewModel() {
 
     var recentlyDeletedTugas: Tugas? = null
-        private set
 
     suspend fun getTugas(id: Long): Tugas? {
         return dao.getTugasById(id)
     }
 
-    fun insert(nama_tugas: String, deskripsi: String,deadline: String, prioritas: String) {
+    fun insert(nama_tugas: String, deskripsi: String, deadline: String, prioritas: String) {
         val tugas = Tugas(
             nama_tugas = nama_tugas,
             dekripsi = deskripsi,
             deadline = deadline,
-            prioritas = prioritas
+            prioritas = prioritas,
+            isDeleted = false
         )
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -29,31 +29,35 @@ class DetailViewModel(private val dao: TugasDao) : ViewModel() {
         }
     }
 
-    fun update(id: Long, nama_tugas: String, deskripsi: String,deadline: String, prioritas: String) {
-        val tugas = Tugas(
-            id = id,
-            nama_tugas = nama_tugas,
-            dekripsi = deskripsi,
-            deadline = deadline,
-            prioritas = prioritas
-        )
-
+    fun update(id: Long, nama_tugas: String, deskripsi: String, prioritas: String, deadline: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            dao.update(tugas)
+            val current = dao.getTugasById(id)
+            if (current != null) {
+                val tugas = Tugas(
+                    id = id,
+                    nama_tugas = nama_tugas,
+                    dekripsi = deskripsi,
+                    prioritas = prioritas,
+                    deadline = deadline,
+                    isDeleted = current.isDeleted
+                )
+                dao.update(tugas)
+            }
         }
     }
 
-    fun delete(tugas: Tugas) {
+    fun delete(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            recentlyDeletedTugas = tugas
-            dao.delete(tugas)
+            dao.softDeleteById(id)
         }
     }
 
     fun restoreDeletedTugas() {
         viewModelScope.launch(Dispatchers.IO) {
-            recentlyDeletedTugas?.let { dao.insert(it) }
-            recentlyDeletedTugas = null
+            recentlyDeletedTugas?.let {
+                dao.update(it.copy(isDeleted = false))
+                recentlyDeletedTugas = null
+            }
         }
     }
 }

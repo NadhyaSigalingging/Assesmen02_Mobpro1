@@ -10,5 +10,6 @@ data class Tugas(
     val nama_tugas: String,
     val dekripsi: String,
     val deadline: String,
-    val prioritas: String
+    val prioritas: String,
+    val isDeleted: Boolean = false
 )

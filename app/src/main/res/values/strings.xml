@@ -29,4 +29,5 @@
     <string name="yakin_hapus">Yakin Hapus</string>
     <string name="prioritas">prioritas</string>
     <string name="deadline">Deadline Tugas</string>
+    <string name="tempat_sampah"> Tempat Sampah </string>
 </resources>

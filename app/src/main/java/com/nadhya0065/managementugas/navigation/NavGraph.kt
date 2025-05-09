@@ -11,6 +11,8 @@ import com.nadhya0065.managementugas.ui.screen.AboutScreen
 import com.nadhya0065.managementugas.ui.screen.DetailScreen
 import com.nadhya0065.managementugas.ui.screen.KEY_VAL_TUGAS
 import com.nadhya0065.managementugas.ui.screen.MainScreen
+import com.nadhya0065.managementugas.ui.screen.RecycleBinScreen
+
 
 @Composable
 fun SetupNavGraph(navController: NavHostController = rememberNavController()) {
@@ -36,5 +38,9 @@ fun SetupNavGraph(navController: NavHostController = rememberNavController()) {
             val id = navBackStackEntry.arguments?.getLong(KEY_VAL_TUGAS)
             DetailScreen(navController, id)
         }
+        composable(route = Screen.TempatSampah.route) {
+            RecycleBinScreen(navController)
+        }
+
     }
 }

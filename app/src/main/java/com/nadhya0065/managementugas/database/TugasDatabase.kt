@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.nadhya0065.managementugas.model.Tugas
 
-@Database(entities = [Tugas::class], version = 2, exportSchema = false)
+@Database(entities = [Tugas::class], version = 3, exportSchema = false)
 abstract class TugasDatabase : RoomDatabase() {
 
     abstract val dao: TugasDao
@@ -18,7 +18,6 @@ abstract class TugasDatabase : RoomDatabase() {
         fun getInstance(context: Context): TugasDatabase {
             synchronized(this) {
                 var instance = INSTANCE
-
                 if (instance == null) {
                     instance = Room.databaseBuilder(
                         context.applicationContext,

@@ -53,20 +53,20 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
     )
     var prioritas by remember { mutableStateOf(radioOptions[0]) }
 
+    val coroutineScope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         if (id != null) {
             val data = viewModel.getTugas(id)
             data?.let {
                 namaTugas = it.nama_tugas
                 deskripsi = it.dekripsi
-                deadline = it.deadline
-                prioritas = it.prioritas
+                deadline = it.prioritas
+                prioritas = it.deadline
             }
         }
     }
 
-    val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         topBar = {
@@ -92,16 +92,16 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
                 ),
                 actions = {
                     IconButton(onClick = {
-                        if (namaTugas.isEmpty() || deskripsi.isEmpty() || deadline.isEmpty() || prioritas.isEmpty() ) {
+                        if (namaTugas.isBlank() || deskripsi.isBlank() || prioritas.isEmpty() || deadline.isBlank()) {
                             Toast.makeText(context, R.string.invalid, Toast.LENGTH_LONG).show()
-                            return@IconButton
-                        }
-                        if (id == null) {
-                            viewModel.insert(namaTugas, deskripsi, deadline, prioritas)
                         } else {
-                            viewModel.update(id, namaTugas, deskripsi, deadline, prioritas)
+                            if (id == null) {
+                                viewModel.insert(namaTugas, deskripsi, prioritas, deadline)
+                            } else {
+                                viewModel.update(id, namaTugas, deskripsi, prioritas, deadline)
+                            }
+                            navController.popBackStack()
                         }
-                        navController.popBackStack()
                     }) {
                         Icon(
                             imageVector = Icons.Outlined.Check,
@@ -114,39 +114,28 @@ fun DetailScreen(navController: NavHostController, id: Long? = null) {
                     }
                 }
             )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        }
     ) { padding ->
-        FormMahasiswa(
+        FormTugas(
             tugas = namaTugas,
             onTugasChange = { namaTugas = it },
             deskripsi = deskripsi,
             onDeskripsiChange = { deskripsi = it },
-            deadline = deadline,
-            onDeadlineChange = { deadline = it },
             prioritas = prioritas,
             onPrioritasChange = { prioritas = it },
             radioOptions = radioOptions,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
+            deadline = deadline,
+            onDeadlineChange = { deadline = it },
         )
+
         if (id != null && showDialog) {
             DisplayAlertDialog(
                 onDismissRequest = { showDialog = false },
                 onConfirmation = {
-                    showDialog = false
                     coroutineScope.launch {
-                        val deletedTugas = viewModel.getTugas(id)
-                        deletedTugas?.let {
-                            viewModel.delete(it)
-                            val result = snackbarHostState.showSnackbar(
-                                message = context.getString(R.string.data_dihapus),
-                                actionLabel = context.getString(R.string.undo)
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                viewModel.restoreDeletedTugas()
-                            }
-                            navController.popBackStack()
-                        }
+                        viewModel.delete(id)
+                        navController.popBackStack()
                     }
                 }
             )
@@ -164,18 +153,18 @@ fun DeleteAction(delete: () -> Unit) {
             contentDescription = stringResource(R.string.lainnya),
             tint = MaterialTheme.colorScheme.primary
         )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            DropdownMenuItem(
-                text = { Text(text = stringResource(id = R.string.hapus)) },
-                onClick = {
-                    expanded = false
-                    delete()
-                }
-            )
-        }
+    }
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false }
+    ) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.hapus)) },
+            onClick = {
+                expanded = false
+                delete()
+            }
+        )
     }
 }
 
@@ -187,7 +176,7 @@ fun ClassOption(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
@@ -204,7 +193,7 @@ fun ClassOption(
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun FormMahasiswa(
+fun FormTugas(
     tugas: String, onTugasChange: (String) -> Unit,
     deskripsi: String, onDeskripsiChange: (String) -> Unit,
     deadline: String, onDeadlineChange: (String) -> Unit,
@@ -213,6 +202,8 @@ fun FormMahasiswa(
     modifier: Modifier
 ) {
     val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -221,8 +212,8 @@ fun FormMahasiswa(
     ) {
         OutlinedTextField(
             value = tugas,
-            onValueChange = { onTugasChange(it) },
-            label = { Text(text = stringResource(R.string.tugas)) },
+            onValueChange = onTugasChange,
+            label = { Text(stringResource(R.string.tugas)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
@@ -232,64 +223,57 @@ fun FormMahasiswa(
         )
         OutlinedTextField(
             value = deskripsi,
-            onValueChange = { onDeskripsiChange(it) },
-            label = { Text(text = stringResource(R.string.deskripsi)) },
+            onValueChange = onDeskripsiChange,
+            label = { Text(stringResource(R.string.deskripsi)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Words,
+                capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Next
             ),
             modifier = Modifier.fillMaxWidth()
         )
-
-// Deadline sekarang pindah ke sini
-        val calendar = Calendar.getInstance()
-        val datePickerDialog = DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                val formattedDate = String.format("%02d-%02d-%d", dayOfMonth, month + 1, year)
-                onDeadlineChange(formattedDate)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
-
         OutlinedTextField(
             value = deadline,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(text = stringResource(R.string.deadline)) },
+            onValueChange = onDeadlineChange,
+            label = { Text(stringResource(R.string.deadline)) },
             trailingIcon = {
-                IconButton(onClick = { datePickerDialog.show() }) {
+                IconButton(onClick = {
+                    DatePickerDialog(
+                        context,
+                        { _, year, month, dayOfMonth ->
+                            val formattedDate =
+                                String.format("%02d-%02d-%04d", dayOfMonth, month + 1, year)
+                            onDeadlineChange(formattedDate)
+                        },
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                    ).show()
+                }) {
                     Icon(
-                        imageVector = Icons.Filled.DateRange,
+                        imageVector = Icons.Default.DateRange,
                         contentDescription = "Pilih Tanggal"
                     )
                 }
             },
+            readOnly = true,
             modifier = Modifier.fillMaxWidth()
         )
-
         Text(
-            text = stringResource(id = R.string.prioritas),
+            text = stringResource(R.string.prioritas),
             style = MaterialTheme.typography.labelLarge
         )
         Column(
-            modifier = Modifier.border(
-                width = 1.dp,
-                color = Color.Gray,
-                shape = RoundedCornerShape(8.dp)
-            ),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             radioOptions.forEach { text ->
                 ClassOption(
                     label = text,
                     isSelected = prioritas == text,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
                     onClick = { onPrioritasChange(text) }
                 )
             }
